@@ -1,0 +1,61 @@
+﻿@model NotificationViewModel
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Channel Parser</h2>
+
+    <form id="notificationForm">
+        <div class="form-group">
+            <label for="Title">Title</label>
+            <input id="Title" name="Title" class="form-control" placeholder="Enter title with channels in brackets (e.g., [BE][FE][Urgent])" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Parse Channels</button>
+    </form>
+
+    <div id="channels" class="mt-4"></div>
+
+    <!-- Example Section -->
+    <div class="mt-5">
+        <h4>Here are a few examples:</h4>
+        <p><strong>Case 1:</strong> Input "<code>[BE][FE][Urgent] there is error</code>"</p>
+        <p><strong>Output:</strong> <code>Receive channels: BE, FE, Urgent</code></p>
+        <p><strong>Case 2:</strong> Input "<code>[BE][QA][HAHA][Urgent] there is error</code>"</p>
+        <p><strong>Output:</strong> <code>Receive channels: BE, QA, Urgent</code></p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $('#notificationForm').on('submit', function(e) {
+        e.preventDefault(); // Prevent the default form submission
+
+        var formData = {
+            Title: $('#Title').val()
+        };
+
+        $.ajax({
+            url: '@Url.Action("ParseChannels", "Notification")', // Controller action
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                var channelsDiv = $('#channels');
+                channelsDiv.empty(); // Clear the div
+
+                if (response.channels && response.channels.length > 0) {
+                    var list = $('<ul class="list-group"></ul>');
+                    response.channels.forEach(function(channel) {
+                        list.append('<li class="list-group-item">' + channel + '</li>');
+                    });
+                    channelsDiv.append(list);
+                } else {
+                    channelsDiv.append('<div class="alert alert-info" role="alert">No channels found.</div>');
+                }
+            },
+            error: function() {
+                $('#channels').html('<div class="alert alert-danger" role="alert">An error occurred while parsing channels.</div>');
+            }
+        });
+    });
+</script>
+
